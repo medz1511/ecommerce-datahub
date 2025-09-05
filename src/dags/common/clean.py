@@ -26,6 +26,8 @@ def clean_clients_data(date):
         
         # Nettoyage
         df = df.drop_duplicates()
+        
+        # Nettoyage des colonnes textuelles
         if 'email' in df.columns:
             df['email'] = df['email'].str.lower().str.strip()
         if 'firstname' in df.columns:
@@ -36,6 +38,11 @@ def clean_clients_data(date):
         # Validation emails si la colonne existe
         if 'email' in df.columns:
             df = df[df['email'].str.contains('@', na=False)]
+        
+        # Validation des IDs
+        if 'customer_id' in df.columns:
+            df = df[df['customer_id'].notna()]
+            df['customer_id'] = df['customer_id'].astype(int)
         
         # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
@@ -64,15 +71,23 @@ def clean_products_data(date):
         
         # Nettoyage
         df = df.drop_duplicates()
-        if 'price' in df.columns:
-            df['price'] = pd.to_numeric(df['price'], errors='coerce')
-        if 'quantity' in df.columns:
-            df['quantity'] = pd.to_numeric(df['quantity'], errors='coerce')
         
-        # Supprimer valeurs aberrantes
+        # Conversion des types numériques
+        if 'product_id' in df.columns:
+            df['product_id'] = pd.to_numeric(df['product_id'], errors='coerce')
+        if 'stock' in df.columns:  # Votre colonne s'appelle 'stock'
+            df['stock'] = pd.to_numeric(df['stock'], errors='coerce')
+        
+        # Supprimer valeurs aberrantes et NaN
         df = df.dropna()
-        if 'price' in df.columns and 'quantity' in df.columns:
-            df = df[(df['price'] > 0) & (df['quantity'] >= 0)]
+        
+        # Validation des valeurs
+        if 'stock' in df.columns:
+            df = df[df['stock'] >= 0]  # Stock ne peut pas être négatif
+        
+        # Nettoyage des noms de produits
+        if 'product_name' in df.columns:
+            df['product_name'] = df['product_name'].str.strip()
         
         # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
@@ -101,15 +116,37 @@ def clean_orders_data(date):
         
         # Nettoyage
         df = df.drop_duplicates()
+        
+        # Conversion des types
+        if 'order_id' in df.columns:
+            df['order_id'] = pd.to_numeric(df['order_id'], errors='coerce')
+        if 'customer_id' in df.columns:
+            df['customer_id'] = pd.to_numeric(df['customer_id'], errors='coerce')
+        if 'product_id' in df.columns:
+            df['product_id'] = pd.to_numeric(df['product_id'], errors='coerce')
+        if 'quantity' in df.columns:
+            df['quantity'] = pd.to_numeric(df['quantity'], errors='coerce')
+        if 'price' in df.columns:
+            df['price'] = pd.to_numeric(df['price'], errors='coerce')
+        
+        # Gestion des dates
         if 'order_date' in df.columns:
             df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
-        if 'amount' in df.columns:
-            df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
         
-        # Filtrer dates et montants valides
+        # Supprimer les lignes avec des valeurs manquantes
         df = df.dropna()
-        if 'amount' in df.columns:
-            df = df[df['amount'] > 0]
+        
+        # Validation des valeurs
+        if 'quantity' in df.columns:
+            df = df[df['quantity'] > 0]  # Quantité doit être positive
+        if 'price' in df.columns:
+            df = df[df['price'] > 0]     # Prix doit être positif
+        
+        # Nettoyage des colonnes textuelles
+        if 'customer_name' in df.columns:
+            df['customer_name'] = df['customer_name'].str.strip()
+        if 'product_name' in df.columns:
+            df['product_name'] = df['product_name'].str.strip()
         
         # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
@@ -156,3 +193,24 @@ def clean_all_data(date):
         print("Aucune donnée commande nettoyée")
     
     return results
+
+# Fonction utilitaire pour tester le nettoyage
+def test_cleaning():
+    """Test unitaire du nettoyage"""
+    from datetime import datetime
+    
+    date_test = datetime(2024, 5, 15)
+    print("Test du nettoyage de données...")
+    
+    result = clean_all_data(date_test)
+    
+    if result:
+        print("✓ Nettoyage terminé avec succès")
+        for key, df in result.items():
+            if not df.empty:
+                print(f"  {key}: {df.shape[0]} lignes, {df.shape[1]} colonnes")
+    else:
+        print("✗ Échec du nettoyage")
+
+if __name__ == "__main__":
+    test_cleaning()
