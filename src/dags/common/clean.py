@@ -8,18 +8,18 @@ def ensure_directory_exists(file_path):
     directory = os.path.dirname(file_path)
     if directory and not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)
-        print(f"Dossier cree: {directory}")
+        print(f"Dossier créé: {directory}")
     return file_path
 
 def clean_clients_data(date):
     """
-    Nettoie les données clients - creation automatique des dossiers
+    Nettoie les données clients - création automatique des dossiers
     """
     try:
         # Lecture
         raw_path = f"data/raw_data/clients/{date.year}/{date.month}/{date.day}.csv"
         if not os.path.exists(raw_path):
-            print(f"Aucune donnee client a nettoyer pour {date}")
+            print(f"Aucune donnée client à nettoyer pour {date}")
             return pd.DataFrame()
         
         df = pd.read_csv(raw_path)
@@ -37,13 +37,13 @@ def clean_clients_data(date):
         if 'email' in df.columns:
             df = df[df['email'].str.contains('@', na=False)]
         
-        # Sauvegarde avec creation automatique du dossier
+        # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
             f"data/clean_data/clients/{date.year}/{date.month}/{date.day}.csv"
         )
         df.to_csv(clean_path, index=False)
         
-        print(f"Clients nettoyes : {clean_path}")
+        print(f"Clients nettoyés : {clean_path}")
         return df
         
     except Exception as e:
@@ -52,12 +52,12 @@ def clean_clients_data(date):
 
 def clean_products_data(date):
     """
-    Nettoie les données produits - creation automatique des dossiers
+    Nettoie les données produits - création automatique des dossiers
     """
     try:
         raw_path = f"data/raw_data/products/{date.year}/{date.month}/{date.day}.csv"
         if not os.path.exists(raw_path):
-            print(f"Aucune donnee produit a nettoyer pour {date}")
+            print(f"Aucune donnée produit à nettoyer pour {date}")
             return pd.DataFrame()
         
         df = pd.read_csv(raw_path)
@@ -74,13 +74,13 @@ def clean_products_data(date):
         if 'price' in df.columns and 'quantity' in df.columns:
             df = df[(df['price'] > 0) & (df['quantity'] >= 0)]
         
-        # Sauvegarde avec creation automatique du dossier
+        # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
             f"data/clean_data/products/{date.year}/{date.month}/{date.day}.csv"
         )
         df.to_csv(clean_path, index=False)
         
-        print(f"Produits nettoyes : {clean_path}")
+        print(f"Produits nettoyés : {clean_path}")
         return df
         
     except Exception as e:
@@ -89,12 +89,12 @@ def clean_products_data(date):
 
 def clean_orders_data(date):
     """
-    Nettoie les données commandes - creation automatique des dossiers
+    Nettoie les données commandes - création automatique des dossiers
     """
     try:
         raw_path = f"data/raw_data/orders/{date.year}/{date.month}/{date.day}.csv"
         if not os.path.exists(raw_path):
-            print(f"Aucune donnee commande a nettoyer pour {date}")
+            print(f"Aucune donnée commande à nettoyer pour {date}")
             return pd.DataFrame()
         
         df = pd.read_csv(raw_path)
@@ -111,15 +111,48 @@ def clean_orders_data(date):
         if 'amount' in df.columns:
             df = df[df['amount'] > 0]
         
-        # Sauvegarde avec creation automatique du dossier
+        # Sauvegarde avec création automatique du dossier
         clean_path = ensure_directory_exists(
             f"data/clean_data/orders/{date.year}/{date.month}/{date.day}.csv"
         )
         df.to_csv(clean_path, index=False)
         
-        print(f"Commandes nettoyees : {clean_path}")
+        print(f"Commandes nettoyées : {clean_path}")
         return df
         
     except Exception as e:
         print(f"Erreur nettoyage commandes: {e}")
         return pd.DataFrame()
+
+def clean_all_data(date):
+    """
+    Nettoie toutes les données pour une date donnée
+    et retourne un dictionnaire avec les DataFrames
+    """
+    print(f"Nettoyage des données pour la date: {date}")
+    
+    clients = clean_clients_data(date)
+    products = clean_products_data(date)
+    orders = clean_orders_data(date)
+    
+    # Vérification des résultats
+    results = {}
+    if not clients.empty:
+        results['clients'] = clients
+        print(f"Clients nettoyés: {clients.shape[0]} lignes")
+    else:
+        print("Aucune donnée client nettoyée")
+    
+    if not products.empty:
+        results['products'] = products
+        print(f"Produits nettoyés: {products.shape[0]} lignes")
+    else:
+        print("Aucune donnée produit nettoyée")
+    
+    if not orders.empty:
+        results['orders'] = orders
+        print(f"Commandes nettoyées: {orders.shape[0]} lignes")
+    else:
+        print("Aucune donnée commande nettoyée")
+    
+    return results
