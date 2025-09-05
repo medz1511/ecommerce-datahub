@@ -1,34 +1,34 @@
 from datetime import datetime
 from src.dags.common.google_auth import test_connection
 from src.dags.common.extract import extract_clients, extract_products, extract_orders
+from src.dags.common.clean import clean_all_data
+from src.dags.common.enrich import enrich_data
 
 def test_complet():
-    print("Test d'authentification Google Drive...")
+    print("Test complet du pipeline ETL...")
     
     if not test_connection():
         return False
     
     try:
-        print("Test extraction des donnees...")
-        date_test = datetime(2024, 5, 10)
+        date_test = datetime(2024, 5, 15)
         
-        # Test clients
-        print("Test extraction clients...")
-        result_clients = extract_clients(date_test)
+        print("1. Extraction...")
+        extract_clients(date_test)
+        extract_products(date_test)
+        extract_orders(date_test)
         
-        # Test produits
-        print("Test extraction produits...")
-        result_products = extract_products(date_test)
+        print("2. Nettoyage...")
+        clean_all_data(date_test)
         
-        # Test commandes
-        print("Test extraction commandes...")
-        result_orders = extract_orders(date_test)
+        print("3. Enrichissement...")
+        enrich_data(date_test)
         
-        print("Tests completes avec succes")
+        print("Pipeline ETL execute avec succes!")
         return True
             
     except Exception as e:
-        print(f"Erreur lors des tests: {e}")
+        print(f"Erreur lors de l'execution: {e}")
         return False
 
 if __name__ == "__main__":

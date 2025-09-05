@@ -123,4 +123,3 @@ def clean_orders_data(date):
     except Exception as e:
         print(f"Erreur nettoyage commandes: {e}")
         return pd.DataFrame()
-        
