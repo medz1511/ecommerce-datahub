@@ -106,7 +106,7 @@ def test_complet():
     print("🚀 TEST COMPLET DU PIPELINE ECOMMERCE")
     print("=" * 60)
     
-    date_test = datetime(2024, 5, 19)
+    date_test = datetime(2024, 5, 11)
     success = True
     
     # 1. Authentification
